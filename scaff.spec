@@ -27,4 +27,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=True, 
-          icon='D:\\Repos\\ScaffGen\\Icons\\scaff64.ico' )
+          icon='Icons\\scaff128.ico' )
