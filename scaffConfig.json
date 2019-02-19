@@ -1,0 +1,8 @@
+{
+  "Business": ".\\Backend\\Business",
+  "Controller": ".\\API\\Controllers",
+  "DAO": ".\\Backend\\DAO",
+  "Filter": ".\\Backend\\Model\\Filter",
+  "Model": ".\\Backend\\Model",
+  "Response": ".\\API\\Response"
+}
