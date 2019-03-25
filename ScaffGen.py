@@ -5,7 +5,7 @@ import json
 import os
 from glob import glob
 
-__version__ = '1.3'
+__version__ = '1.4'
 
 TEMPLATE_PATH = "./Templates/"
 CONFIG_FILE = "./scaffConfig.json"
@@ -53,6 +53,9 @@ def get_csproj_file():
     result = []
     dir_name = destinationPath
     while len(result) == 0:
+        if dir_name == "":
+            return None
+
         result = glob(os.path.join(dir_name, "*.csproj"))
         dir_name = os.path.dirname(dir_name)
 
@@ -72,7 +75,7 @@ def update_csproj():
         csproj_content = f.read().decode("utf-8-sig", "ignore")
 
     if exists_in_csproj(csproj_content, new_line):
-        print("%s ja existe no csproj!" % csprojIncludePart)
+        print("%s já existe no csproj!" % csprojIncludePart)
         return
 
     index = csproj_content.find('    <Compile Include="%s' % os.path.dirname(csprojIncludePart))
@@ -95,7 +98,7 @@ def exists_in_csproj(content, line):
 
 def validate_name():
     if name == "":
-        print("Nome invalido!")
+        print("Nome inválido!")
         os.system('pause')
         exit(1)
 
@@ -105,6 +108,24 @@ def validate_config_exists():
         print("Config file not found!")
         os.system('pause')
         exit(1)
+
+
+def select_options():
+    print("\nSelecione os modelos que deseja gerar (separados por vírgula)")
+    print("\t[0] Todos")
+
+    for i, k in enumerate(configData.keys()):
+        print("\t[%d] %s" % (i+1, k))
+
+    opts = raw_input(">> ").strip()
+
+    try:
+        opts = map(lambda o: int(o.strip()), opts.split(','))
+    except:
+        print("Opção inválida!")
+        exit(1)
+
+    return opts
 
 
 if __name__ == '__main__':
@@ -118,21 +139,51 @@ if __name__ == '__main__':
     nameLower = name[0].lower() + name[1:]
     configData = get_config_data()
 
-    for templateFileName in os.listdir(TEMPLATE_PATH):
-        scaffoldName, extension = os.path.splitext(templateFileName)
-        destinationPath = configData.get(scaffoldName, None)
+    options = select_options()
+    templates = os.listdir(TEMPLATE_PATH)
 
-        if extension != ".cs" or not destinationPath:
-            continue
+    if 0 in options:
+        for templateFileName in templates:
+            scaffoldName, extension = os.path.splitext(templateFileName)
+            destinationPath = configData.get(scaffoldName, None)
 
-        fileContent = get_file_content()
-        finalPathName = get_final_path_name()
+            if extension != ".cs" or not destinationPath:
+                continue
 
-        write_output_file()
+            fileContent = get_file_content()
+            finalPathName = get_final_path_name()
 
-        csprojFile = get_csproj_file()
-        csprojIncludePart = get_csproj_include_part()
-        update_csproj()
+            write_output_file()
+
+            csprojFile = get_csproj_file()
+            if not csprojFile:
+                print("Arquivo csproj não encontrado!")
+                continue
+
+            csprojIncludePart = get_csproj_include_part()
+            update_csproj()
+    else:
+        selected_templates = map(lambda o: (configData.keys()[o-1]).lower(), options)
+
+        for templateFileName in templates:
+            scaffoldName, extension = os.path.splitext(templateFileName)
+            destinationPath = configData.get(scaffoldName, None)
+
+            if scaffoldName.lower() not in selected_templates or extension != ".cs" or not destinationPath:
+                continue
+
+            fileContent = get_file_content()
+            finalPathName = get_final_path_name()
+
+            write_output_file()
+
+            csprojFile = get_csproj_file()
+            if not csprojFile:
+                print("Arquivo csproj não encontrado!")
+                continue
+
+            csprojIncludePart = get_csproj_include_part()
+            update_csproj()
 
     print("")
     os.system('pause')
